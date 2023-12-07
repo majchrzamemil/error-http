@@ -9,9 +9,9 @@ description = """
 Procedural macro for associating error enums with HTTP codes.
 """
 keywords = ["enum", "http", "rocket", "axum", "error"]
-homepage = "https://github.com/majchrzamemil/http_error"
-repository = "https://github.com/majchrzamemil/http_error"
-documentation = "https://docs.rs/http_error"
+homepage = "https://github.com/majchrzamemil/error-http"
+repository = "https://github.com/majchrzamemil/error-http"
+documentation = "https://docs.rs/error-http"
 
 [lib]
 proc-macro = true
