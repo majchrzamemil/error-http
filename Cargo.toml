@@ -1,0 +1,32 @@
+[package]
+name = "error-http"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+readme = "README.md"
+authors = ["Emil Majchrzak <majchrzakemil@gmail.com>"]
+description = """
+Procedural macro for associating error enums with HTTP codes.
+"""
+keywords = ["enum", "http", "rocket", "axum", "error"]
+homepage = "https://github.com/majchrzamemil/http_error"
+repository = "https://github.com/majchrzamemil/http_error"
+documentation = "https://docs.rs/http_error"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+cfg-if = "1.0.0"
+syn = { version = "1.0", features = ["full"] }
+quote = "1.0"
+proc-macro2 = "1.0"
+
+[dev-dependencies]
+axum = "0.7.2"
+rocket = "0.5.0"
+
+[features]
+default = []
+axum = []
+rocket = []
