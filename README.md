@@ -8,11 +8,12 @@ appropriate responder will be implemented for the chosen web server.
 `#[code(XXX)]` defined for a given enum variant will result in `XXX` HTTP code being returned for it. Any variant without `#[code(XXX)]` will default to `500`. Any invalid HTTP error code will default to `500`.
 
 `#[body(message)]` defined for a given variant will add a body to the response. `body` can be any expression that 
-produces String or &str Currently, there is no option to change the content type.
+produces `String` or `&str`. Currently, there is no option to change the content type.
 
 ## Supported web servers
 
 This crate only allows choosing exactly one of avaliable implementations. Avaliable implementation:
+- `actix-web` 
 - `axum`
 - `rocket`
 
@@ -43,6 +44,5 @@ enum Error {
 
 ## Future development
 Possible expansion of this crate consists of:
-- implementing `actix` support
 - content type and JSON body
 - tracing/logging

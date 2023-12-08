@@ -22,7 +22,7 @@ fn impl_into_response(_name: &Ident, enum_data: DataEnum) -> proc_macro2::TokenS
         .map(|v| make_enum_variant(v))
         .collect();
     cfg_if::cfg_if! {
-        if #[cfg(all(feature = "axum", not(feature = "rocket")))] {
+        if #[cfg(all(feature = "axum", not(feature = "rocket"), not(feature = "actix")))] {
             quote! {
                 impl axum::response::IntoResponse for #_name {
                     fn into_response(self) -> axum::response::Response {
@@ -32,7 +32,7 @@ fn impl_into_response(_name: &Ident, enum_data: DataEnum) -> proc_macro2::TokenS
                     }
                 }
             }
-        } else if #[cfg(all(feature = "rocket", not(feature = "axum")))] {
+        } else if #[cfg(all(feature = "rocket", not(feature = "axum"), not(feature = "actix")))] {
             quote! {
                 impl<'r, 'o: 'r> ::rocket::response::Responder<'r, 'o> for #_name {
                     fn respond_to(self, request: &'r rocket::request::Request<'_>) -> rocket::response::Result<'o> {
@@ -42,8 +42,18 @@ fn impl_into_response(_name: &Ident, enum_data: DataEnum) -> proc_macro2::TokenS
                     }
                 }
             }
+        } else if #[cfg(all(feature = "actix", not(feature = "axum"), not(feature = "rocket")))] {
+            quote! {
+                impl actix_web::ResponseError for #_name {
+                    fn error_response(&self) -> actix_web::HttpResponse {
+                        match &self {
+                            #(Self::#_variants,)*
+                        }
+                    }
+                }
+            }
         } else {
-            unimplemented!("Use rocket OR axum feature!");
+            unimplemented!("Use rocket OR axum OR actix feature!");
         }
     }
 }
@@ -96,15 +106,21 @@ fn make_enum_variant(variant: &Variant) -> proc_macro2::TokenStream {
         .parse()
         .expect("Invalid token stream");
     cfg_if::cfg_if! {
-        if #[cfg(all(feature = "axum", not(feature = "rocket")))] {
+        if #[cfg(all(feature = "axum", not(feature = "rocket"), not(feature = "actix")))] {
              quote! { #_ident #_fields => (axum::http::StatusCode::from_u16(#_code).unwrap_or(axum::http::StatusCode::INTERNAL_SERVER_ERROR), #_body).into_response()}
-         } else if #[cfg(all(feature = "rocket", not(feature = "axum")))] {
+         } else if #[cfg(all(feature = "rocket", not(feature = "axum"), not(feature = "actix")))] {
              quote! { #_ident #_fields =>
              #_body.respond_to(request).map(|mut resp| {
                      resp.set_status(rocket::http::Status::from_code(#_code).unwrap_or(rocket::http::Status::InternalServerError));
                      resp
                  })
 
+             }
+         } else if #[cfg(all(feature = "actix", not(feature = "axum"), not(feature = "rocket")))] {
+             quote! { #_ident #_fields =>  actix_web::HttpResponse::build(
+                 actix_web::http::StatusCode::from_u16(#_code)
+                 .unwrap_or(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR))
+                 .body(#_body)
              }
          } else {
              unimplemented!("Use rocket OR axum feature!");

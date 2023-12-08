@@ -1,3 +1,6 @@
+# 0.2.1
+- `actix-web` support
+
 # 0.2.0
 - Improved docs and added `body` 
 
