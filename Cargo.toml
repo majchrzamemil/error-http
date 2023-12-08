@@ -8,7 +8,7 @@ authors = ["Emil Majchrzak <majchrzakemil@gmail.com>"]
 description = """
 Procedural macro for associating error enums with HTTP codes.
 """
-keywords = ["enum", "http", "rocket", "axum", "error", "actix-web"]
+keywords = ["enum", "http", "rocket", "axum", "error"]
 homepage = "https://github.com/majchrzamemil/error-http"
 repository = "https://github.com/majchrzamemil/error-http"
 documentation = "https://docs.rs/error-http"
