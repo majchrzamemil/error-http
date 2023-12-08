@@ -16,6 +16,7 @@ mod axum {
             _b: u32,
         },
         #[code(404)]
+        #[body("some error message")]
         Blah(SomeStruct, String),
         Third,
         #[code(99)]
@@ -59,6 +60,7 @@ mod rocket_test {
     #[derive(ToResponse)]
     enum Error {
         #[code(404)]
+        #[body("message")]
         Blah(SomeStruct, String),
         Third,
     }

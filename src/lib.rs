@@ -68,26 +68,46 @@ fn make_enum_variant(variant: &Variant) -> proc_macro2::TokenStream {
         .filter(|attr| attr.path.is_ident("code"))
         .collect();
 
+    // HTTP code
     let code = if let Some(attr) = attrs.get(0) {
         attr.tokens.clone().to_string()
     } else {
         quote! {(500)}.to_string()
     };
     //Trimming ( )
-    let _code: proc_macro2::TokenStream = code[1..code.len() - 1].parse().expect("Invalid token stream");
+    let _code: proc_macro2::TokenStream = code[1..code.len() - 1]
+        .parse()
+        .expect("Invalid token stream");
+
+    // Response body
+    let attrs: Vec<&Attribute> = variant
+        .attrs
+        .iter()
+        .filter(|attr| attr.path.is_ident("body"))
+        .collect();
+
+    let body = if let Some(attr) = attrs.get(0) {
+        attr.tokens.clone().to_string()
+    } else {
+        "({})".to_owned()
+    };
+    //Trimming ( )
+    let _body: proc_macro2::TokenStream = body[1..body.len() - 1]
+        .parse()
+        .expect("Invalid token stream");
     cfg_if::cfg_if! {
         if #[cfg(all(feature = "axum", not(feature = "rocket")))] {
-             quote! { #_ident #_fields => axum::http::StatusCode::from_u16(#_code).unwrap_or(axum::http::StatusCode::INTERNAL_SERVER_ERROR).into_response()}
+             quote! { #_ident #_fields => (axum::http::StatusCode::from_u16(#_code).unwrap_or(axum::http::StatusCode::INTERNAL_SERVER_ERROR), #_body).into_response()}
          } else if #[cfg(all(feature = "rocket", not(feature = "axum")))] {
              quote! { #_ident #_fields =>
-             {}.respond_to(request).map(|mut resp| {
+             #_body.respond_to(request).map(|mut resp| {
                      resp.set_status(rocket::http::Status::from_code(#_code).unwrap_or(rocket::http::Status::InternalServerError));
                      resp
                  })
 
              }
          } else {
-             unreachable!("Use rocket OR axum feature!");
+             unimplemented!("Use rocket OR axum feature!");
          }
     }
 }
