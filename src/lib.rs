@@ -4,7 +4,7 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, Attribute, Data, DataEnum, DeriveInput, Ident, Variant};
 
-#[proc_macro_derive(ToResponse, attributes(code))]
+#[proc_macro_derive(ToResponse, attributes(code, body))]
 pub fn to_http_error_code(item: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(item as DeriveInput);
 
@@ -24,10 +24,10 @@ fn impl_into_response(_name: &Ident, enum_data: DataEnum) -> proc_macro2::TokenS
     cfg_if::cfg_if! {
         if #[cfg(all(feature = "axum", not(feature = "rocket")))] {
             quote! {
-                impl axum::response::IntoResponse for #name {
+                impl axum::response::IntoResponse for #_name {
                     fn into_response(self) -> axum::response::Response {
                         match &self {
-                            #(Self::#variants,)*
+                            #(Self::#_variants,)*
                         }
                     }
                 }
@@ -74,14 +74,14 @@ fn make_enum_variant(variant: &Variant) -> proc_macro2::TokenStream {
         quote! {(500)}.to_string()
     };
     //Trimming ( )
-    let _code: proc_macro2::TokenStream = code[1..code.len() - 1].parse().unwrap();
+    let _code: proc_macro2::TokenStream = code[1..code.len() - 1].parse().expect("Invalid token stream");
     cfg_if::cfg_if! {
         if #[cfg(all(feature = "axum", not(feature = "rocket")))] {
-             quote! { #_ident #_fields => axum::http::StatusCode::from_u16(#_code).unwrap().into_response()}
+             quote! { #_ident #_fields => axum::http::StatusCode::from_u16(#_code).unwrap_or(axum::http::StatusCode::INTERNAL_SERVER_ERROR).into_response()}
          } else if #[cfg(all(feature = "rocket", not(feature = "axum")))] {
              quote! { #_ident #_fields =>
              {}.respond_to(request).map(|mut resp| {
-                     resp.set_status(rocket::http::Status::from_code(#_code).unwrap());
+                     resp.set_status(rocket::http::Status::from_code(#_code).unwrap_or(rocket::http::Status::InternalServerError));
                      resp
                  })
 
