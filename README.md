@@ -58,7 +58,7 @@ fn check_default_error_code() {
 ```
 
 ## Future development
-Possible exapnsion of this crate consists of:
+Possible expansion of this crate consists of:
 - implementing `actix` support
 - optional body for HTTP response
 - tracing/logging

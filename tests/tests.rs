@@ -2,7 +2,7 @@
 #[cfg(test)]
 mod axum {
     use axum::{http::StatusCode, response::IntoResponse};
-    use http_error::ToResponse;
+    use error_http::ToResponse;
     struct SomeStruct {
         _a: i32,
         _b: u32,
@@ -18,6 +18,8 @@ mod axum {
         #[code(404)]
         Blah(SomeStruct, String),
         Third,
+        #[code(99)]
+        Invalid,
     }
 
     #[test]
@@ -33,13 +35,19 @@ mod axum {
             StatusCode::INTERNAL_SERVER_ERROR,
             error.into_response().status()
         );
+
+        let error = Error::Invalid;
+        assert_eq!(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            error.into_response().status()
+        );
     }
 }
 
 #[cfg(feature = "rocket")]
 #[cfg(test)]
 mod rocket_test {
-    use http_error::ToResponse;
+    use error_http::ToResponse;
     use rocket::http::Status;
     use rocket::local::blocking::Client;
 
