@@ -1,16 +1,19 @@
 #![doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/README.md"))]
 
+use proc_macro::Span;
 use proc_macro::TokenStream;
+use proc_macro_error::{abort, proc_macro_error};
 use quote::quote;
 use syn::{parse_macro_input, Attribute, Data, DataEnum, DeriveInput, Ident, Variant};
 
+#[proc_macro_error]
 #[proc_macro_derive(ToResponse, attributes(code, body))]
 pub fn to_http_error_code(item: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(item as DeriveInput);
 
     let name = &ast.ident;
     let Data::Enum(enum_data) = ast.data else {
-        panic!("only avaliable for enum");
+        abort!(Span::call_site(), "Only supported for enum");
     };
     impl_into_response(name, enum_data).into()
 }
@@ -53,7 +56,7 @@ fn impl_into_response(_name: &Ident, enum_data: DataEnum) -> proc_macro2::TokenS
                 }
             }
         } else {
-            unimplemented!("Use rocket OR axum OR actix feature!");
+            abort!(Span::call_site(), "Use rocket OR axum OR actix feature!");
         }
     }
 }
@@ -123,7 +126,7 @@ fn make_enum_variant(variant: &Variant) -> proc_macro2::TokenStream {
                  .body(#_body)
              }
          } else {
-             unimplemented!("Use rocket OR axum feature!");
+            abort!(Span::call_site(), "Use rocket OR axum OR actix feature!");
          }
     }
 }

@@ -1,3 +1,6 @@
+# 0.2.2
+- Improved error handling with `proc-macro-error`
+
 # 0.2.1
 - `actix-web` support
 
